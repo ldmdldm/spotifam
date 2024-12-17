@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id
+  displayName   String
+  spotifyUrl    String
+  imageUrl      String?
+  topTracks     Track[]   @relation("UserTopTracks")
+  likedTracks   Track[]   @relation("UserLikedTracks")
+  genres        Genre[]
+  matches       Match[]   @relation("UserMatches")
+  matchedWith   Match[]   @relation("MatchedWithUsers")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Track {
+  id            String    @id
+  name          String
+  artistName    String
+  albumImageUrl String?
+  users         User[]    @relation("UserTopTracks")
+  likedByUsers  User[]    @relation("UserLikedTracks")
+}
+
+model Genre {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model Match {
+  id            String   @id @default(cuid())
+  user          User     @relation("UserMatches", fields: [userId], references: [id])
+  userId        String
+  matchedUser   User     @relation("MatchedWithUsers", fields: [matchedUserId], references: [id])
+  matchedUserId String
+  score         Float
+  commonTracks  String   // Stored as JSON
+  commonGenres  String   // Stored as JSON
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, matchedUserId])
+}
